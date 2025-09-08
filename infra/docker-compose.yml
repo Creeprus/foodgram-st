@@ -9,7 +9,7 @@ services:
       - "8201:8201"
     environment:
      - VAULT_ADDR=http://0.0.0.0:8201
-     - VAULT_TOKEN=hvs.V1BRapqceFbM0ZV0NgHloe8p
+     - VAULT_TOKEN=<Your token>
     cap_add:
       - IPC_LOCK
     volumes:
@@ -47,7 +47,7 @@ services:
 #      - ./.env
     environment:
     - VAULT_ADDR=http://vault:8201
-    - VAULT_TOKEN=hvs.V1BRapqceFbM0ZV0NgHloe8p
+    - VAULT_TOKEN=<Your token>
     ports:
       - "8000:8000"
     volumes:
