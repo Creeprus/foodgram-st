@@ -1,4 +1,6 @@
 #!/bin/bash
+# chmod +rwx ./unseal.sh
+# ./unseal.sh
 echo "Ожидание базы..."
 sleep 2
 

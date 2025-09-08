@@ -1,8 +1,41 @@
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
+import hvac
 import os
 import constants
+from django.core.exceptions import ImproperlyConfigured
+
+def get_vault_secrets(mount="DB"):
+    """
+    Получает секреты из Hashicorp Vault
+    """
+    try:
+        client = hvac.Client(
+            url=os.environ.get('VAULT_ADDR', 'http://vault:8201'),
+            token=os.environ.get('VAULT_TOKEN')
+        )
+        
+        if not client.is_authenticated():
+            print("Vault client not authenticated, using fallback to env variables")
+            return {}
+        
+        response = client.secrets.kv.read_secret_version(
+            path=mount,
+            mount_point='foodgram'
+        )
+        
+        print("Successfully loaded secrets from Vault")
+        return response['data']['data']
+        
+    except Exception as e:
+        print(f"Warning: Could not fetch secrets from Vault: {e}")
+        print("Using fallback to environment variables")
+        return {}
+
+def get_setting(key, mount, default=None):
+    vault_secrets = get_vault_secrets(mount)
+    return vault_secrets.get(key, os.getenv(key, default))
 
 load_dotenv()
 
@@ -10,10 +43,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
 
-DEBUG = os.getenv("DEBUG", default=True)
+#DEBUG = os.getenv("DEBUG", default=True)
+DEBUG = get_setting("DEBUG", "DJANGO")
+
+# ALLOWED_HOSTS = (
+#     os.getenv("ALLOWED_HOSTS", default='127.0.0.1,localhost').split(",")
+# )
 
 ALLOWED_HOSTS = (
-    os.getenv("ALLOWED_HOSTS", default='127.0.0.1,localhost').split(",")
+    get_setting("ALLOWED_HOSTS", "DJANGO").split(",")
 )
 
 CSRF_TRUSTED_ORIGINS = [
@@ -76,17 +114,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+#         'USER': os.getenv('POSTGRES_USER', 'postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+#         'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+#         'PORT': os.getenv('DB_PORT', 5432)
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'postgres'),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DB_PORT', 5432)
+        'NAME': get_setting("POSTGRES_DB", "DB"),
+        'USER': get_setting('POSTGRES_USER', 'DB'),
+        'PASSWORD': get_setting('POSTGRES_PASSWORD', 'DB'),
+        'HOST': get_setting('DB_HOST', 'DB'),
+        'PORT': get_setting('DB_PORT', 'DB')
     }
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
