@@ -22,18 +22,12 @@ services:
 
   db:
     container_name: foodgram-db
-#    image: postgres:13.0
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-#      - ../vault/db-auth.sh:/db-auth.sh
     env_file: .env
     build: ../postgree/
     depends_on:
       - vault
-#    environment:
-#      POSTGRES_DB: foodgram_db
-#      POSTGRES_USER: foodgram_user
-#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-default_password}
     restart: always
     command: /bin/bash -c "/db-auth.sh"
     
@@ -41,7 +35,8 @@ services:
   backend:
     container_name: foodgram-backend
     #image: leaderofthebadgers/foodgram-backend:latest
-    build: ../backend/
+    image: leaderofthebadgers/foodgram-backend:latest_vault
+    #build: ../backend/
     restart: always
     depends_on:
       - db

@@ -31,7 +31,6 @@ class Command(BaseCommand):
             )
             return
 
-        
         users = [
             {
                 'username': 'Pepega',

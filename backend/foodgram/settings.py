@@ -19,7 +19,7 @@ def get_vault_secrets(mount="DB"):
         if not client.is_authenticated():
             print("Vault client not authenticated, using fallback to env variables")
             return {}
-        
+
         response = client.secrets.kv.read_secret_version(
             path=mount,
             mount_point='foodgram'
