@@ -1,6 +1,5 @@
 
 # Надо подождать сервак
-sleep 20
 # Проверяем статус
 VAULT_STATUS=$(vault status -format=json)
 INIT_STATUS=$(echo "$VAULT_STATUS" | grep -o '"initialized":[^,]*' | cut -d: -f2 | tr -d ' "')
@@ -33,7 +32,8 @@ else
   
   if [ "$SEAL_STATUS" = "true" ]; then
     echo "Trying to unseal..."
-   vault operator unseal 825ed0780a3af0f7adc5f5c12bfbd381706bdbcff4a711865b021a34acd04c03
+   vault operator unseal $UNSEAL_TOKEN
+   # или если болше одного, можно сюда вставить
   fi
 fi
 

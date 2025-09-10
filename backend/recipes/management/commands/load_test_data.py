@@ -31,6 +31,7 @@ class Command(BaseCommand):
             )
             return
 
+        
         users = [
             {
                 'username': 'Pepega',
@@ -68,9 +69,15 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Пользователи созданы'))
 
+        if IngredientInRecipe.objects.exists():
+            self.stdout.write(
+                'Данные уже есть '
+                ''
+            )
+            return
+
         if not options['no_ingredients'] and Ingredient.objects.exists():
             ingredients = list(Ingredient.objects.all()[:20])
-
             recipes_data = [
                 {
                     'name': 'Омлет с сыром',

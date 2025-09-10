@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3.8'
 services:
 
   vault:
@@ -7,25 +7,27 @@ services:
     restart: on-failure:10
     ports:
       - "8201:8201"
+    env_file: .env
     environment:
-     - VAULT_ADDR=http://0.0.0.0:8201
-     - VAULT_TOKEN=<Your token>
+      - VAULT_ADDR=http://0.0.0.0:8201
     cap_add:
       - IPC_LOCK
     volumes:
       - ../vault:/vault_data
       - vault_data:/data
-     # - ../vault/vault-init.sh:/vault-init.sh
     healthcheck:
       retries: 5
     command: ./vault_data/workflow-vault.sh
+     
 
   db:
     container_name: foodgram-db
-    image: postgres:13.0-alpine
+#    image: postgres:13.0
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+#      - ../vault/db-auth.sh:/db-auth.sh
     env_file: .env
+    build: ../postgree/
     depends_on:
       - vault
 #    environment:
@@ -33,7 +35,8 @@ services:
 #      POSTGRES_USER: foodgram_user
 #      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-default_password}
     restart: always
-    command: sleep 20
+    command: /bin/bash -c "/db-auth.sh"
+    
 
   backend:
     container_name: foodgram-backend
@@ -43,11 +46,9 @@ services:
     depends_on:
       - db
       - vault
-#    env_file:
-#      - ./.env
+    env_file: .env
     environment:
     - VAULT_ADDR=http://vault:8201
-    - VAULT_TOKEN=<Your token>
     ports:
       - "8000:8000"
     volumes:
@@ -55,7 +56,7 @@ services:
       - static_value:/app/static/
       - media_value:/app/media/
       - fonts:/app/fonts/
-    command: sleep 20
+
 
   frontend:
     container_name: foodgram-front
@@ -88,3 +89,5 @@ volumes:
   static_value:
   media_value:
   fonts:
+
+

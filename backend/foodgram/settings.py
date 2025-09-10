@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import hvac
 import os
 import constants
-from django.core.exceptions import ImproperlyConfigured
+
 
 def get_vault_secrets(mount="DB"):
     """
@@ -13,9 +13,9 @@ def get_vault_secrets(mount="DB"):
     try:
         client = hvac.Client(
             url=os.environ.get('VAULT_ADDR', 'http://vault:8201'),
-            token=os.environ.get('VAULT_TOKEN')
+            token=os.getenv('VAULT_TOKEN',"default-token")
         )
-        
+
         if not client.is_authenticated():
             print("Vault client not authenticated, using fallback to env variables")
             return {}
@@ -24,18 +24,20 @@ def get_vault_secrets(mount="DB"):
             path=mount,
             mount_point='foodgram'
         )
-        
+
         print("Successfully loaded secrets from Vault")
         return response['data']['data']
-        
+
     except Exception as e:
         print(f"Warning: Could not fetch secrets from Vault: {e}")
         print("Using fallback to environment variables")
         return {}
 
+
 def get_setting(key, mount, default=None):
     vault_secrets = get_vault_secrets(mount)
     return vault_secrets.get(key, os.getenv(key, default))
+
 
 load_dotenv()
 
@@ -43,7 +45,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
 
-#DEBUG = os.getenv("DEBUG", default=True)
+# DEBUG = os.getenv("DEBUG", default=True)
 DEBUG = get_setting("DEBUG", "DJANGO")
 
 # ALLOWED_HOSTS = (
