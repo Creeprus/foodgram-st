@@ -10,10 +10,11 @@ def get_vault_secrets(mount="DB"):
     """
     Получает секреты из Hashicorp Vault
     """
+
     try:
         client = hvac.Client(
             url=os.environ.get('VAULT_ADDR', 'http://vault:8201'),
-            token=os.getenv('VAULT_TOKEN',"default-token")
+            token=os.getenv('VAULT_TOKEN', "default-token")
         )
 
         if not client.is_authenticated():
